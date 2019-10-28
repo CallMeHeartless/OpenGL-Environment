@@ -1,0 +1,64 @@
+#version 450 core
+
+//in vec3 fragColor;
+in vec2 fragTexCoord;
+in vec3 fragPos;
+in vec3 fragNormal;
+in vec4 FragPosLightSpace;
+
+out vec4 color;
+
+layout(location = 7) uniform vec3 lightPos;
+layout(location = 8) uniform sampler2D tex;
+layout(location = 9) uniform sampler2D shadowMap;
+
+float zNear = 0.1f;
+float zFar = 1000.0f;
+
+float linearize_depth(float d)
+{
+    float z_n = 2.0 * d - 1.0;
+    return 2.0 * zNear * zFar / (zFar + zNear - z_n * (zFar - zNear));
+}
+
+float ShadowCalculation(vec4 fragPosLightSpace){
+	vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+	
+	vec3 texCoordSpace = 0.5f * projCoords + 0.5f;
+
+	// Try linearise depth
+	float z_b = texture(shadowMap, fragTexCoord).x;
+	//float z_lin = linearize_depth(z_b);
+
+	float currentDepth = texCoordSpace.z - 0.005f;
+	float closestDepth = texture(shadowMap, texCoordSpace.xy).r;
+
+	float z_lin = linearize_depth(currentDepth);
+
+	float shadow = currentDepth < closestDepth ? 1.0 : 0.0;
+	return shadow;
+}
+
+void main(){
+	//vec3 lightDir = normalize(fragPos - lightPos);
+	vec3 lightDir = normalize(lightPos - fragPos);
+	float intensity = dot(lightDir, normalize(fragNormal));
+	vec4 colorResult;
+
+	float shadow = ShadowCalculation(FragPosLightSpace);
+	
+
+	if(intensity > 0.95){
+		colorResult = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+	}else if(intensity > 0.5f){
+		colorResult = vec4(0.6f, 0.6f, 0.6f, 1.0f);
+	}else if(intensity > 0.25f){
+		colorResult = vec4(0.4f, 0.4f, 0.4f, 1.0f);
+	}else{
+		colorResult = vec4(0.1f, 0.1f, 0.1f, 1.0f);
+	}
+
+	color = texture(tex, fragTexCoord) * vec4(colorResult.xyz * shadow, 1.0f);
+
+}
+
