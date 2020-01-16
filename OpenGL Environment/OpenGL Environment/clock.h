@@ -1,6 +1,9 @@
-
-
-#pragma once
+/***********************
+ * File:		clock.h
+ * Description: Header file for the clock class
+ * Author:		Asma Shakil & Kerry Pellett
+ * Contact:		kerry.pellet@gmail.com
+********************/
 
 #ifndef _CLOCK_H_
 #define _CLOCK_H_
@@ -9,13 +12,6 @@
 #include <chrono>
 #include <vector>
 
-// Local Includes
-
-// Types
-
-// Constants
-
-// Prototypes
 class Clock
 {
 	// Member Functions
